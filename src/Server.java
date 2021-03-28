@@ -22,23 +22,22 @@ public class Server {
 			BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
 			System.out.println("Welcome to GCC FTP service! \n Waiting for client commands...");
-			String clientStr="", outStr="Got it!";
+			String clientStr="", outStr="";
 			while( !clientStr.equals("QUIT")) {
 				
 				clientStr = inStream.readUTF();
 				
 				Scanner scan = new Scanner(clientStr);
-				String cmd = scan.next();
-								
+				String cmd = scan.next();		
 				//check which command was entered:
-				if(cmd == "PWD") {
+				if(cmd.equals("PWD")) {
 					
 					outStr = pwd();
 					
-				}else if(cmd == "LIST") {
+				}else if(cmd.equals("LIST")) {
 					outStr = list();
 					
-				}else if (cmd == "STOR") {
+				}else if (cmd.equals("STOR")) {
 					//Get arguments
 					if(scan.hasNext()) {
 						outStr = store(scan.next());
@@ -46,7 +45,7 @@ public class Server {
 						outStr = "Need Arguments!";
 					}
 					
-				}else if (cmd =="RETR") {
+				}else if (cmd.equals("RETR")) {
 					//Get arguments
 					if(scan.hasNext()) {
 						outStr = retr(scan.next());
@@ -60,6 +59,7 @@ public class Server {
 				outStream.writeUTF(outStr);
 				//flush the stream to make sure the data has been written 
 				outStream.flush();
+				System.out.println("\n");
 			}
 			System.out.println("Connection terminated by the client...");
 			

@@ -1,9 +1,14 @@
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
 import java.util.Scanner;
 
 /** Author:  John Burke, Sydnee Charles
@@ -12,6 +17,8 @@ import java.util.Scanner;
   * Description: 
 */
 public class Server {
+	
+	public final static int BUFFER_SIZE = 500;
 
 	public static void main(String[] args) {
 		try {
@@ -19,12 +26,12 @@ public class Server {
 			Socket mySocket =srverSocket.accept();  
 			DataInputStream inStream=new DataInputStream(mySocket.getInputStream());
 			DataOutputStream outStream=new DataOutputStream(mySocket.getOutputStream());  
-			BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+			//BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
 			System.out.println("Welcome to GCC FTP service! \n Waiting for client commands...");
 			String clientStr="", outStr="";
 			while( !clientStr.equals("QUIT")) {
-				
+				outStr="";
 				clientStr = inStream.readUTF();
 				
 				Scanner scan = new Scanner(clientStr);
@@ -32,33 +39,48 @@ public class Server {
 				//check which command was entered:
 				if(cmd.equals("PWD")) {
 					
-					outStr = pwd();
+					outStr = pwd() + "\n";
 					
 				}else if(cmd.equals("LIST")) {
 					outStr = list();
-					
+						
 				}else if (cmd.equals("STOR")) {
 					//Get arguments
 					if(scan.hasNext()) {
-						outStr = store(scan.next());
+						byte[] buffer = new byte[BUFFER_SIZE];
+						OutputStream myFile = new FileOutputStream(scan.next());
+						inStream.read(buffer);
+						myFile.write(buffer);
+						
+						outStr = "File stored correctly";
+						myFile.close();	
+						
 					}else {
-						outStr = "Need Arguments!";
+						outStr = "Need Arguments!\n";
 					}
-					
 				}else if (cmd.equals("RETR")) {
 					//Get arguments
 					if(scan.hasNext()) {
-						outStr = retr(scan.next());
-					}else {
-						outStr = "Need Arguments!";
+						//send file to server
+						File myFile = new File(scan.next());
+						byte[] b = Files.readAllBytes(myFile.toPath());
+						
+						//Send file to server					
+						outStream.write(b, 0, b.length);
+						outStr = "Here is the " + myFile.getName() + " file contents!";
+					}
+					else {
+						outStr = "Need Arguments!\n";
 					}
 					
 				}else {
 					//Invalid command
 				}
+				
 				outStream.writeUTF(outStr);
 				//flush the stream to make sure the data has been written 
 				outStream.flush();
+				scan.close();
 				System.out.println("\n");
 			}
 			System.out.println("Connection terminated by the client...");
@@ -83,13 +105,4 @@ public class Server {
 		return "";
 	}
 	
-	public static String store(String file) {
-		return "File stored correctly";
-	}
-	
-	public static String retr(String file) {
-		return "Here is the XX file contents!";
-	}
-	
-
 }

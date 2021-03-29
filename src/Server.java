@@ -3,7 +3,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.ServerSocket;
@@ -17,8 +16,8 @@ import java.util.Scanner;
   * Description: 
 */
 public class Server {
-	
 	public final static int BUFFER_SIZE = 500;
+	private File currentDirectory;
 
 	public static void main(String[] args) {
 		try {
@@ -33,6 +32,7 @@ public class Server {
 			while( !clientStr.equals("QUIT")) {
 				outStr="";
 				clientStr = inStream.readUTF();
+				//System.out.println("clientStr: " + clientStr);
 				
 				Scanner scan = new Scanner(clientStr);
 				String cmd = scan.next();		
@@ -73,8 +73,9 @@ public class Server {
 						outStr = "Need Arguments!\n";
 					}
 					
-				}else {
+				}else if (!cmd.equals("QUIT")){
 					//Invalid command
+					outStr = "Invalid Command: " + cmd;
 				}
 				
 				outStream.writeUTF(outStr);
@@ -82,6 +83,8 @@ public class Server {
 				outStream.flush();
 				scan.close();
 				System.out.println("\n");
+				//close the scanner
+				scan.close();
 			}
 			System.out.println("Connection terminated by the client...");
 			
@@ -98,11 +101,11 @@ public class Server {
 	
 	public static String list() {
 		
-		return "";
+		return "Testing List";
 	}
 	
 	public static String pwd() {
-		return "";
+		return "Testing PWD";
 	}
 	
 }

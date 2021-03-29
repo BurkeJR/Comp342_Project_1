@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -12,6 +13,8 @@ import java.util.Scanner;
   * Description: 
 */
 public class Server {
+	
+	private File currentDirectory;
 
 	public static void main(String[] args) {
 		try {
@@ -26,6 +29,7 @@ public class Server {
 			while( !clientStr.equals("QUIT")) {
 				
 				clientStr = inStream.readUTF();
+				//System.out.println("clientStr: " + clientStr);
 				
 				Scanner scan = new Scanner(clientStr);
 				String cmd = scan.next();		
@@ -53,13 +57,16 @@ public class Server {
 						outStr = "Need Arguments!";
 					}
 					
-				}else {
+				}else if (!cmd.equals("QUIT")){
 					//Invalid command
+					outStr = "Invalid Command: " + cmd;
 				}
 				outStream.writeUTF(outStr);
 				//flush the stream to make sure the data has been written 
 				outStream.flush();
 				System.out.println("\n");
+				//close the scanner
+				scan.close();
 			}
 			System.out.println("Connection terminated by the client...");
 			
@@ -76,11 +83,11 @@ public class Server {
 	
 	public static String list() {
 		
-		return "";
+		return "Testing List";
 	}
 	
 	public static String pwd() {
-		return "";
+		return "Testing PWD";
 	}
 	
 	public static String store(String file) {

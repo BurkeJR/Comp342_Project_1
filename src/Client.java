@@ -1,5 +1,7 @@
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;
 
@@ -31,8 +33,52 @@ public class Client {
 				System.out.print("Command: ");
 				toServer = console.next();
 				
-				//send the command to the server
-				outStream.writeUTF(toServer);
+				if(toServer.equals("STOR")) {	
+					//Send command request to server
+					outStream.writeUTF(toServer);
+					
+					if(console.hasNext()) {
+						//send file to server
+						String file = console.next();
+						outStream.writeUTF(file);
+						//Get file to send
+						File myFile = new File(file);
+						Scanner readFile = new Scanner(myFile);
+						//Get file content by char
+						String fileContent = "";
+						readFile.useDelimiter("");
+						while(readFile.hasNext()) {
+							fileContent += readFile.next();
+						}
+
+						//Send file content to server
+						outStream.writeUTF(fileContent);
+						//Close scanner
+						readFile.close();
+					}			
+					
+				}
+				else if(toServer.equals("RETR")) {
+					//Send command request to server
+					outStream.writeUTF(toServer);
+					if(console.hasNext()) {
+						//Send requested file name to Server
+						String file = console.next();
+						outStream.writeUTF(file);
+						//Create requested file
+						PrintWriter myFile = new PrintWriter(file);
+						myFile.print(inStream.readUTF());
+						//Close PrintWriter
+						myFile.close();
+					}
+					
+				}
+				
+				else {
+					//send the command to the server
+					outStream.writeUTF(toServer);
+				}				
+				
 				outStream.flush();
 				
 				//receive the server's response

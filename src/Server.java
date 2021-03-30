@@ -1,13 +1,10 @@
-import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.file.Files;
 import java.util.Scanner;
 
 /** Author:  John Burke, Sydnee Charles
@@ -16,8 +13,6 @@ import java.util.Scanner;
   * Description: 
 */
 public class Server {
-	public final static int BUFFER_SIZE = 500;
-	private File currentDirectory;
 
 	public static void main(String[] args) {
 		try {
@@ -28,63 +23,69 @@ public class Server {
 			//BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
 			System.out.println("Welcome to GCC FTP service! \n Waiting for client commands...");
-			String clientStr="", outStr="";
-			while( !clientStr.equals("QUIT")) {
-				outStr="";
-				clientStr = inStream.readUTF();
-				//System.out.println("clientStr: " + clientStr);
+			
+			String clientCmd="", outStr="";
+			while( !clientCmd.equals("QUIT")) {
 				
-				Scanner scan = new Scanner(clientStr);
-				String cmd = scan.next();		
+				outStr="";		
+				clientCmd = inStream.readUTF();	//Client command
+				
 				//check which command was entered:
-				if(cmd.equals("PWD")) {
+				if(clientCmd.equals("PWD")) {
 					
-					outStr = pwd() + "\n";
+					outStr = pwd();
 					
-				}else if(cmd.equals("LIST")) {
+				}
+				
+				else if(clientCmd.equals("LIST")) {
 					outStr = list();
 						
-				}else if (cmd.equals("STOR")) {
-					//Get arguments
-					if(scan.hasNext()) {
-						byte[] buffer = new byte[BUFFER_SIZE];
-						OutputStream myFile = new FileOutputStream(scan.next());
-						inStream.read(buffer);
-						myFile.write(buffer);
-						
-						outStr = "File stored correctly";
-						myFile.close();	
-						
+				}
+				
+				else if (clientCmd.equals("STOR")) {
+					//Get file name and content
+					String arg = inStream.readUTF();
+					String fileContent = inStream.readUTF();
+					
+					outStr = Store(arg, fileContent);
+					
+				}
+				
+				else if (clientCmd.equals("RETR")) {
+					String arg = inStream.readUTF();
+					if(!arg.isEmpty()) {
+						//Get file to send
+						File myFile = new File("S" + arg); //Server copy of file
+						//Read file content
+						Scanner readFile = new Scanner(myFile);
+						String fileContent = "";
+						readFile.useDelimiter(""); 
+						//Read file by character
+						while(readFile.hasNext()) {
+							fileContent += readFile.next();
+						}
+						//Send file content to client
+						outStream.writeUTF(fileContent);
+						//Output string
+						outStr = "Here is the " + arg.substring(0, arg.length() - arg.indexOf(".")) 
+								+ " file contents!"; //+ fileContent;
+						//Close scanner
+						readFile.close();
 					}else {
 						outStr = "Need Arguments!\n";
 					}
-				}else if (cmd.equals("RETR")) {
-					//Get arguments
-					if(scan.hasNext()) {
-						//send file to server
-						File myFile = new File(scan.next());
-						byte[] b = Files.readAllBytes(myFile.toPath());
-						
-						//Send file to server					
-						outStream.write(b, 0, b.length);
-						outStr = "Here is the " + myFile.getName() + " file contents!";
-					}
-					else {
-						outStr = "Need Arguments!\n";
-					}
 					
-				}else if (!cmd.equals("QUIT")){
+				}
+				
+				else if (!clientCmd.equals("QUIT")){
 					//Invalid command
-					outStr = "Invalid Command: " + cmd;
+					outStr = "Invalid Command: " + clientCmd;
 				}
 				
 				outStream.writeUTF(outStr);
 				//flush the stream to make sure the data has been written 
 				outStream.flush();
-				scan.close();
 				System.out.println("\n");
-				//close the scanner
-				scan.close();
 			}
 			System.out.println("Connection terminated by the client...");
 			
@@ -99,13 +100,27 @@ public class Server {
 		}
 	}
 	
-	public static String list() {
-		
+	public static String list() {			
 		return "Testing List";
 	}
 	
 	public static String pwd() {
 		return "Testing PWD";
+	}
+	
+	public static String Store(String filename, String content) throws FileNotFoundException {
+		if(!filename.isEmpty()) {
+			//Create a server copy of file
+			PrintWriter myFile = new PrintWriter("S" + filename);
+			myFile.print(content);//Print content to file
+			//Closer PrintWriter
+			myFile.close();	
+			//Output string
+			return "File stored correctly";
+			
+		}else {
+			return "Need Arguments!\n";
+		}
 	}
 	
 }

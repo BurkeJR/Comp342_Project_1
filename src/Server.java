@@ -13,6 +13,8 @@ import java.util.Scanner;
   * Description: 
 */
 public class Server {
+	
+	private static File currentDirectory = new File("./");
 
 	public static void main(String[] args) {
 		try {
@@ -100,12 +102,16 @@ public class Server {
 		}
 	}
 	
-	public static String list() {			
-		return "Testing List";
+	public static String list() {	
+		String l = "";
+		for(File entry: currentDirectory.listFiles()) {
+			l += entry.getName() + "\n";
+		}
+		return l;
 	}
 	
 	public static String pwd() {
-		return "Testing PWD";
+		return currentDirectory.getAbsolutePath();
 	}
 	
 	public static String Store(String filename, String content) throws FileNotFoundException {

@@ -104,13 +104,16 @@ public class Server {
 	
 	public static String list() {	
 		String l = "";
+		//add the name of each file in the current directory to a String
 		for(File entry: currentDirectory.listFiles()) {
 			l += entry.getName() + "\n";
 		}
+		//return the String that has all of the file names
 		return l;
 	}
 	
 	public static String pwd() {
+		//returns the path of the current directory
 		return currentDirectory.getAbsolutePath();
 	}
 	
